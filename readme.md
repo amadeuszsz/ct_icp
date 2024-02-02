@@ -33,15 +33,14 @@ to more datasets.
 
 ##### Tested On:
 
-| OS    | COMPILER       |
-| --- |----------------|
-| Ubuntu 18.04 | GCC >= 7.5     |
-| Ubuntu 18.04 | clang >= 8.01  | 
+| OS           | COMPILER    |
+| ------------ | ----------- |
+| Ubuntu 22.04 | GCC >= 11.4 |
 
 ### Step 0: Clone the directory
 
 ```bash
-git clone https://github.com/jedeschaud/ct_icp.git
+git clone https://github.com/amadeuszsz/ct_icp.git
 cd ct_icp
 ```
 
@@ -80,33 +79,18 @@ cmake --build . --target install --config Release --parallel 12       #< Build a
 > You can use the config files located at `<SUPERBUILD_INSTALL_DIR>/CT_ICP/lib/cmake` to load the libraries in a cmake
 > project, or use ROS or the specified executables.
 
-### Step 3: ROS
+### Step 3: ROS 2
 
-To build the ROS wrapping for **CT-ICP**, first build and install the CT-ICP library (see *Steps 1 and 2* ).
+To build the ROS 2 wrapping for **CT-ICP**, first build and install the CT-ICP library (see *Steps 1 and 2*).
 
-> /!\ Set the CMAKE argument `-DWITH_ROS=ON` to the configure step (1) of the superbuild (*Step 1*)
->
-
-Install the `ROSCore` library, (this should install a shared library named `ROSCore`
-at `<CT_ICP_INSTALL_DIR>/CT_ICP/lib`):
+> Make a symbolic link of the directory `ct_icp_odometry` of this project to the `src` directory
+> of your ROS 2 workspace.
 
 ```bash
-cd ros/roscore
-mkdir cmake-build-release && cd  cmake-build-release                  #< Create the build directory
-cmake .. -DCMAKE_BUILD_TYPE=Release                                   #< (2) Configure with the desired options (specify arguments with -D<arg_name>=<arg_value>)
-cmake --build . --target install --config Release --parallel 12       #< Build and Install the ROSCore library
-```
-
-> Then make a symbolic link of the directory `ct_icp_odometry` and `slam_roscore` of this project to the `src` directory
-> of your catkin
-> workspace.
-
-```bash
-cd <path-to-your-catkin-workspace>/src                              #< Move to the Catkin Workspace's src directory
-ln -s <path-to-ct_icp-git-project>/ros/catkin_ws/ct_icp_odometry ct_icp_odometry        #< Make a symbolic link to the `catkin_ws` folder
-ln -s <path-to-ct_icp-git-project>/ros/catkin_ws/slam_roscore slam_roscore        #< Make a symbolic link to the `catkin_ws` folder
-cd ..                                                               #< Move back to the root of the catkin workspace
-catkin_make -DSUPERBUILD_INSTALL_DIR=<path-to-superbuild-install-dir>
+cd <path-to-your-ros2-workspace>/src                              #< Move to the ROS 2 Workspace's src directory
+ln -s <path-to-ct_icp-git-project>/ros/ct_icp_odometry ct_icp_odometry        #< Make a symbolic link to the ROS2 workspace folder
+cd ..                                                               #< Move back to the root of the ROS 2 workspace
+colcon build --symlink-install --packages-up-to ct_icp_odometry --cmake-args -DCMAKE_BUILD_TYPE=Release -DCMAKE_EXPORT_COMPILE_COMMANDS=On -DSUPERBUILD_INSTALL_DIR=<path-to-superbuild-install-dir>
 ```
 
 > If the installation is successful, and after sourcing the workspace's devel directory, you should be able to launch
@@ -114,12 +98,14 @@ catkin_make -DSUPERBUILD_INSTALL_DIR=<path-to-superbuild-install-dir>
 
 > The wrapping defines the following nodes:
 
-- `ct_icp_dataset_node`: A node which publishes pointclouds of ct_icp's different datasets read from disk.
 - `ct_icp_odometry_node`: The main odometry node running `ct_icp`'s odometry.
 
 ```
-roslaunch ct_icp_odometry launch_slam_dataset.launch dataset_path:=<path-to-dataset-root> dataset:=<dataset_name> sequence:=<sequence_name>
+ros2 launch ct_icp_odometry ct_icp_odometry.launch.py input_cloud_topic:=/your/pointcloud/topic
 ```
+> You can change input cloud topic in Input/Cloud rviz panel to see the actual input.
+
+> See launch file for more details on the parameters.
 
 [//]: # (### Visualization [experimental])
 
@@ -182,20 +168,7 @@ The dataset available are the following:
 
 ### Download ROSBAGS to run the SLAM with ROS
 
-Below we give a list of datasets for we worked on the ROSBags,
-and for which we propose a roslaunch file.
-
-- [UrbanLoco](https://github.com/weisongwen/UrbanLoco): A Road Dataset for localization in Urban Scenes
-- [HILTI](https://hilti-challenge.com/index.html): A benchmark for precision mapping in construction sites
-- [SubT](https://bitbucket.org/subtchallenge/subt_reference_datasets/src/master/): Subterrean datasets acquired in the
-  context of DARPA Subterrean Challenge bu the Army Research Laboratory
-- [SubT](https://bitbucket.org/subtchallenge/subt_reference_datasets/src/master/): Subterrean datasets acquired in the
-  context of DARPA Subterrean Challenge bu the Army Research Laboratory
-- [Newer College Dataset](https://ori-drs.github.io/newer-college-dataset/): A large dataset of handheld sensors
-  acquired by the Oxford
-
-For more datasets, don't hesitate to look at this awesome
-list [List of SLAM Datasets](https://github.com/youngguncho/awesome-slam-datasets#mapping()).
+TODO: Provide ROS 2 bag files.
 
 ## Running the SLAM
 
@@ -226,14 +199,9 @@ Some datasets are defined in the library (with expected layout for the Data, see
 extend
 `ct_icp::ADatasetSequence` to define your own custom datasets.
 
-### OPTION III -- Using ROS
+### OPTION III -- Using ROS 2
 
-After completing the ROS installation, use the launch files defined in `ros/catkin_ws/ct_icp_odometry/launch` on a
-rosbag to launch the odometry, for e.g:
-
-```
-roslaunch ct_icp_odometry urban_loco_CAL.launch rosbag:=<path-to-UrbanLoco-root>/CA-20190828190411_blur_align.bag
-```
+After completing the ROS 2 installation, play rosbag and use the launch file defined in `ros/your_workspace/ct_icp_odometry/launch`.
 
 ## Citation
 

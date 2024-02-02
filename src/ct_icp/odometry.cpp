@@ -289,8 +289,9 @@ namespace ct_icp {
         trajectory_[kFrameIndex].end_pose = Pose(SE3(), frame_info.end_timestamp, frame_info.frame_id);
 
         if (kFrameIndex <= 1) {
-            // Initialize first pose at Identity
-
+            // Initialize first pose at Identity or with initial pose if provided
+            trajectory_[kFrameIndex].begin_pose.pose = initial_pose_.pose;
+            trajectory_[kFrameIndex].end_pose.pose = initial_pose_.pose;
         } else if (kFrameIndex == 2) {
             if (options_.initialization == INIT_CONSTANT_VELOCITY) {
                 // Different regimen for the second frame due to the bootstrapped elasticity
@@ -987,12 +988,17 @@ namespace ct_icp {
         }
     }
 
-    /* -------------------------------------------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------------------------------------------- */
     std::shared_ptr<ISlamMap> Odometry::GetMapPointer() {
         return map_;
     }
 
-    /* -------------------------------------------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------------------------------------------- */
+    void Odometry::SetInitialPose(const slam::Pose &initial_pose) {
+        initial_pose_ = initial_pose;
+    }
+
+/* -------------------------------------------------------------------------------------------------------------- */
     void Odometry::RobustRegistrationAttempt::IncreaseRobustnessLevel() {
         sample_voxel_size = index_frame < options_.init_num_frames ?
                             options_.init_sample_voxel_size : options_.sample_voxel_size;

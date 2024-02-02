@@ -271,9 +271,13 @@ namespace ct_icp {
         // Returns the pointer to the map
         std::shared_ptr<ct_icp::ISlamMap> GetMapPointer();
 
+        // Set raw pose of the odometry
+        void SetInitialPose(const slam::Pose &initial_pose);
+
     private:
         std::map<OdometryCallback::EVENT, std::vector<OdometryCallback *>> callbacks_;
         std::vector<TrajectoryFrame> trajectory_;
+        slam::Pose initial_pose_;
         std::shared_ptr<ct_icp::ISlamMap> map_ = nullptr;
         std::shared_ptr<ct_icp::ANeighborhoodStrategy> neighborhood_strategy_ = nullptr;
         PreviousFrameMotionModel default_motion_model;
